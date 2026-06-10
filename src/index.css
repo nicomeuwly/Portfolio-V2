@@ -1,0 +1,64 @@
+@import "tailwindcss";
+
+/* ------------------------------------------------------------
+   Design tokens — palette restreinte, façon "Apple premium".
+   Les accents par monde sont définis dans src/data/content.ts.
+------------------------------------------------------------- */
+@theme {
+  --color-paper: #f7f6f3;
+  --color-ink: #1c1c1e;
+  --color-ink-soft: #74716c;
+  --color-line: #e6e3dc;
+  /* Surfaces "cartes" (panneaux, pastilles, HUD) */
+  --color-surface: #ffffff;
+
+  --font-sans: "Hanken Grotesk", system-ui, -apple-system, sans-serif;
+  --font-display: "Instrument Serif", Georgia, serif;
+}
+
+/* Thème sombre — activé via data-theme sur <html> (voir useTheme.ts) */
+:root[data-theme="dark"] {
+  --color-paper: #141416;
+  --color-ink: #f0efea;
+  --color-ink-soft: #98958d;
+  --color-line: #2d2d32;
+  --color-surface: #1e1e22;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  background: var(--color-paper);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+  overflow: hidden; /* la navigation se fait par la caméra de la carte */
+  -webkit-font-smoothing: antialiased;
+  transition: background-color 0.4s ease, color 0.4s ease;
+}
+
+/* Grain très subtil par-dessus tout (profondeur, rendu "papier") */
+body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  pointer-events: none;
+  opacity: 0.035;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+/* Focus clavier visible partout (accessibilité) */
+:focus-visible {
+  outline: 2px solid var(--color-ink);
+  outline-offset: 3px;
+  border-radius: 4px;
+}
+
+::selection {
+  background: var(--color-ink);
+  color: var(--color-paper);
+}
