@@ -16,6 +16,12 @@
   --font-display: "Instrument Serif", Georgia, serif;
 }
 
+/* Anneau de focus clavier, par thème (volontairement hors de @theme pour
+   rester une vraie variable au runtime, non aplatie à la compilation) */
+:root {
+  --focus-ring: rgba(28, 28, 30, 0.45);
+}
+
 /* Thème sombre — activé via data-theme sur <html> (voir useTheme.ts) */
 :root[data-theme="dark"] {
   --color-paper: #141416;
@@ -23,6 +29,7 @@
   --color-ink-soft: #98958d;
   --color-line: #2d2d32;
   --color-surface: #1e1e22;
+  --focus-ring: rgba(240, 239, 234, 0.45);
 }
 
 html,
@@ -51,11 +58,21 @@ body::after {
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
 }
 
-/* Focus clavier visible partout (accessibilité) */
+/* Focus clavier visible partout (accessibilité) — discret : encre
+   semi-transparente, et surtout PAS de border-radius ici (cela modifierait
+   l'arrondi réel de l'élément focalisé ; le contour suit de toute façon
+   l'arrondi de l'élément). */
 :focus-visible {
-  outline: 2px solid var(--color-ink);
+  outline: 2px solid var(--focus-ring);
   outline-offset: 3px;
-  border-radius: 4px;
+}
+
+/* Aucun contour sur les fenêtres (panneau de détail, fiche de personnage) :
+   elles reçoivent le focus à l'ouverture pour le clavier et les lecteurs
+   d'écran, mais le contexte modal est déjà évident visuellement. */
+[role="dialog"]:focus,
+[role="dialog"]:focus-visible {
+  outline: none;
 }
 
 ::selection {

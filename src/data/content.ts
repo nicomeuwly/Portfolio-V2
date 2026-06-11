@@ -38,12 +38,20 @@ export interface LevelNodeData {
   tags?: string[]
   links?: LinkItem[]
   /**
-   * Image d'illustration affichée en haut du panneau de détail (idéal pour
-   * les projets). Placez le fichier dans `public/` et référencez-le par son
-   * chemin absolu, ex. `{ src: '/projects/atlas.svg', alt: '…' }`.
-   * Formats conseillés : 16:9, ≥ 800px de large.
+   * Image affichée dans le panneau de détail. Placez le fichier dans
+   * `public/` et référencez-le par son chemin absolu.
+   * - `variant: 'banner'` (défaut) : grande image 16:9 en haut du panneau,
+   *   idéale pour les projets (≥ 800px de large conseillé).
+   * - `variant: 'portrait'` : photo carrée arrondie à côté du titre,
+   *   idéale pour une photo de profil (≥ 320×320px conseillé).
    */
-  image?: { src: string; alt: string }
+  image?: { src: string; alt: string; variant?: 'banner' | 'portrait' }
+  /**
+   * Symbole affiché dans la pastille à la place du numéro (utile quand un
+   * monde n'a qu'un seul point, où "1" n'aurait pas de sens). Ex. '@', '✉', '★'.
+   * Le point `kind: 'skills'` affiche toujours '✦' automatiquement.
+   */
+  icon?: string
   kind?: 'standard' | 'skills'
   /** Décalage manuel (px, dans le repère de la carte) si besoin d'ajuster. */
   offset?: { x?: number; y?: number }
@@ -111,6 +119,7 @@ export const worlds: WorldData[] = [
         id: 'qui-suis-je',
         title: 'Qui suis-je',
         subtitle: 'Joueur 1',
+        image: { src: '/portrait.svg', alt: 'Portrait d’Alex Martin', variant: 'portrait' },
         description:
           'Développeur web basé à Lausanne, je transforme des idées en produits soignés. Mon terrain de jeu favori : la frontière entre design et code, là où une interface devient une expérience.',
         tags: ['Front-End', 'Design', 'Produit'],
@@ -259,6 +268,7 @@ export const worlds: WorldData[] = [
         id: 'contact',
         title: 'Me contacter',
         subtitle: 'Niveau bonus — toujours ouvert',
+        icon: '@',
         description:
           'Un projet, une mission, ou simplement envie d’échanger sur les interfaces animées ? Ma boîte mail est le dernier checkpoint de cette carte — et le début d’une autre partie.',
         tags: ['Disponible pour missions freelance'],

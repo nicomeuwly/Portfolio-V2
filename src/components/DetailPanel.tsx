@@ -63,8 +63,8 @@ export function DetailPanel({ pn, onClose }: DetailPanelProps) {
               </svg>
             </button>
 
-            {/* Image d'illustration (optionnelle, voir `image` dans content.ts) */}
-            {pn.node.image && (
+            {/* Image bannière (optionnelle, `variant: 'banner'` — défaut) */}
+            {pn.node.image && pn.node.image.variant !== 'portrait' && (
               <img
                 src={pn.node.image.src}
                 alt={pn.node.image.alt}
@@ -72,28 +72,48 @@ export function DetailPanel({ pn, onClose }: DetailPanelProps) {
               />
             )}
 
-            {/* Pastille du monde */}
-            <span
-              className="inline-flex items-center gap-2 rounded-full px-3.5 py-1.5 text-[11px] font-semibold tracking-[0.18em] uppercase"
-              style={{ backgroundColor: `${pn.world.accent}15`, color: pn.world.accent }}
+            <div
+              className={
+                pn.node.image?.variant === 'portrait'
+                  ? 'flex items-start justify-between gap-6'
+                  : undefined
+              }
             >
-              <span
-                className="h-1.5 w-1.5 rounded-full"
-                style={{ backgroundColor: pn.world.accent }}
-                aria-hidden
-              />
-              {pn.world.label} · {pn.world.title}
-            </span>
+              <div className="min-w-0">
+                {/* Pastille du monde */}
+                <span
+                  className="inline-flex items-center gap-2 rounded-full px-3.5 py-1.5 text-[11px] font-semibold tracking-[0.18em] uppercase"
+                  style={{ backgroundColor: `${pn.world.accent}15`, color: pn.world.accent }}
+                >
+                  <span
+                    className="h-1.5 w-1.5 rounded-full"
+                    style={{ backgroundColor: pn.world.accent }}
+                    aria-hidden
+                  />
+                  {pn.world.label} · {pn.world.title}
+                </span>
 
-            <h2
-              id={`panel-${pn.node.id}-title`}
-              className="font-display mt-5 text-4xl text-ink italic sm:text-[2.6rem]"
-            >
-              {pn.node.title}
-            </h2>
-            {pn.node.subtitle && (
-              <p className="mt-1.5 text-sm font-medium text-ink-soft">{pn.node.subtitle}</p>
-            )}
+                <h2
+                  id={`panel-${pn.node.id}-title`}
+                  className="font-display mt-5 text-4xl text-ink italic sm:text-[2.6rem]"
+                >
+                  {pn.node.title}
+                </h2>
+                {pn.node.subtitle && (
+                  <p className="mt-1.5 text-sm font-medium text-ink-soft">{pn.node.subtitle}</p>
+                )}
+              </div>
+
+              {/* Photo portrait (optionnelle, `variant: 'portrait'`) —
+                  décalée sous le bouton de fermeture pour ne pas le chevaucher */}
+              {pn.node.image?.variant === 'portrait' && (
+                <img
+                  src={pn.node.image.src}
+                  alt={pn.node.image.alt}
+                  className="mt-6 h-24 w-24 shrink-0 rounded-2xl border border-line object-cover shadow-md sm:h-28 sm:w-28"
+                />
+              )}
+            </div>
 
             <p className="mt-5 leading-relaxed text-ink/85">{pn.node.description}</p>
 

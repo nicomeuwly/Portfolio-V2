@@ -69,7 +69,11 @@ export function LevelNode({ pn, active, visited, introDone, onClick }: LevelNode
         whileHover={reduceMotion ? undefined : { scale: 1.1, y: -4 }}
         whileTap={reduceMotion ? undefined : { scale: 0.94 }}
       >
-        <span className={isSkills ? '-rotate-45' : ''}>{isSkills ? '✦' : nodeIndex + 1}</span>
+        {/* Contenu de la pastille : ✦ pour les skills, sinon l'icône
+            personnalisée du point (content.ts), sinon son numéro. */}
+        <span className={isSkills ? '-rotate-45' : ''}>
+          {isSkills ? '✦' : (node.icon ?? nodeIndex + 1)}
+        </span>
       </motion.span>
 
       {/* Libellé sous le point */}

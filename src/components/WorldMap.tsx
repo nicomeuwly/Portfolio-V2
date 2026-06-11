@@ -111,18 +111,27 @@ export function WorldMap({ activeIndex, introDone, onNodeClick }: WorldMapProps)
   // pour que le relief touche toujours le bord inférieur quel que soit
   // l'écran. Seule la translation horizontale suit la parallaxe.
   const GROUND_H = 260
-  const groundD = useMemo(() => {
-    const pts: { x: number; y: number }[] = []
-    for (let x = 0; x <= mapWidth; x += 260) {
-      pts.push({ x, y: 84 + Math.sin(x / 340) * 30 })
+  const groundPaths = useMemo(() => {
+    // Chaque couche couvre TOUTE la largeur de la carte (0 → mapWidth) ;
+    // la profondeur vient d'un déphasage de l'onde, pas d'une translation
+    // (une translation laisserait une arête verticale visible au bord).
+    const makeHills = (base: number, amp: number, phase: number) => {
+      const pts: { x: number; y: number }[] = []
+      for (let x = 0; x <= mapWidth; x += 260) {
+        pts.push({ x, y: base + Math.sin((x + phase) / 340) * amp })
+      }
+      if (pts[pts.length - 1].x < mapWidth) {
+        pts.push({ x: mapWidth, y: base + Math.sin((mapWidth + phase) / 340) * amp })
+      }
+      let d = `M 0 ${GROUND_H} L ${pts[0].x} ${pts[0].y}`
+      for (let i = 1; i < pts.length; i++) {
+        const mx = (pts[i - 1].x + pts[i].x) / 2
+        d += ` Q ${mx} ${pts[i - 1].y}, ${pts[i].x} ${pts[i].y}`
+      }
+      d += ` L ${mapWidth} ${GROUND_H} Z`
+      return d
     }
-    let d = `M 0 ${GROUND_H} L ${pts[0].x} ${pts[0].y}`
-    for (let i = 1; i < pts.length; i++) {
-      const mx = (pts[i - 1].x + pts[i].x) / 2
-      d += ` Q ${mx} ${pts[i - 1].y}, ${pts[i].x} ${pts[i].y}`
-    }
-    d += ` L ${mapWidth} ${GROUND_H} Z`
-    return d
+    return [makeHills(84, 30, 0), makeHills(112, 26, 480)]
   }, [])
 
   const active = positionedNodes[activeIndex]
@@ -163,8 +172,8 @@ export function WorldMap({ activeIndex, introDone, onNodeClick }: WorldMapProps)
           preserveAspectRatio="none"
           className="block"
         >
-          <path d={groundD} fill="var(--color-ink)" opacity={0.04} />
-          <path d={groundD} fill="var(--color-ink)" opacity={0.025} transform="translate(140, 26)" />
+          <path d={groundPaths[0]} fill="var(--color-ink)" opacity={0.04} />
+          <path d={groundPaths[1]} fill="var(--color-ink)" opacity={0.025} />
         </svg>
       </motion.div>
 
