@@ -16,6 +16,9 @@
  * ============================================================================
  */
 
+/* ----------------------------- Variables --------------------------------- */
+const BLOB_PUBLIC_URL = "https://v5nmkkbjcswqwbun.public.blob.vercel-storage.com"
+
 /* ----------------------------- Types ------------------------------------- */
 
 /** Lien externe affiché dans le panneau de détail d'un point. */
@@ -154,7 +157,7 @@ export const worlds: WorldData[] = [
         description:
           "Formation commerciale complétée par une maturité professionnelle. Premières bases en organisation, rigueur et relation client, qui structurent encore ma manière de travailler aujourd'hui.",
         tags: ["Formation", "Commerce"],
-        links: [{ label: "CFC", url: "/docs/CFC.pdf" }, { label: "Maturité", url: "/docs/MPC.pdf" }, { label: "Bulletin", url: "/docs/GYB_Bulletin.pdf" }, { label: "Prix de fin d'études", url: "/docs/GYB_Prix.pdf" }],
+        links: [{ label: "CFC", url: `${BLOB_PUBLIC_URL}/CFC.pdf` }, { label: "Maturité", url: `${BLOB_PUBLIC_URL}/MPC.pdf` }, { label: "Bulletin", url: `${BLOB_PUBLIC_URL}/GYB_Bulletin.pdf` }, { label: "Prix de fin d'études", url: `${BLOB_PUBLIC_URL}/GYB_Prix.pdf` }],
       },
       {
         id: "bachelor",
@@ -164,7 +167,7 @@ export const worlds: WorldData[] = [
         description:
           "Bachelor of Science HES-SO en Ingénierie des Médias : développement web, design d'interaction, gestion de projet et conception de produits numériques. Le déclic pour le développement frontend.",
         tags: ["HES-SO", "Ingénierie des Médias", "Web"],
-        links: [{ label: "Bachelor", url: "/docs/Bachelor.pdf" }, { label: "Attestation", url: "/docs/HEIG-VD_Attestation.pdf" }, { label: "Bulletin", url: "/docs/HEIG-VD_Bulletin.pdf" }],
+        links: [{ label: "Bachelor", url: `${BLOB_PUBLIC_URL}/Bachelor.pdf` }, { label: "Attestation", url: `${BLOB_PUBLIC_URL}/HEIG-VD_Attestation.pdf` }, { label: "Bulletin", url: `${BLOB_PUBLIC_URL}/HEIG-VD_Bulletin.pdf` }],
       },
       {
         id: "bachelor-projet",
@@ -174,7 +177,7 @@ export const worlds: WorldData[] = [
         description:
           "Conception et développement d'une solution digitale métier chez Digitec Galaxus AG : design UX/UI, automatisation de traitements de données, analyse des besoins, gestion de projet et amélioration continue.",
         tags: ["UX/UI", "Automatisation", "Gestion de projet"],
-        links: [{ label: "Maquette interactive", url: "https://chk.me/kMp71OX" }, { label: "Rapport", url: "/docs/TB_Rapport.pdf" }, { label: "Repo Backend", url: "https://github.com/nicomeuwly/dg-targetstock" }, { label: "Repo Frontend", url: "https://github.com/nicomeuwly/dg-targetstock-frontend" }],
+        links: [{ label: "Maquette interactive", url: "https://chk.me/kMp71OX" }, { label: "Rapport", url: `${BLOB_PUBLIC_URL}/TB_Rapport.pdf` }, { label: "Repo Backend", url: "https://github.com/nicomeuwly/dg-targetstock" }, { label: "Repo Frontend", url: "https://github.com/nicomeuwly/dg-targetstock-frontend" }],
       },
       {
         id: "uty3",
@@ -184,7 +187,7 @@ export const worlds: WorldData[] = [
         description:
           "Développement et maintenance de sites sous WordPress, intégration frontend et outils tiers (DocuSign, GTM, reCAPTCHA), automatisation de workflows avec n8n, mise en production, optimisation et amélioration UX/UI.",
         tags: ["WordPress", "Intégration", "n8n", "IA"],
-        links: [{ label: "Certificat", url: "/docs/UTY3_Certificat.pdf" }],
+        links: [{ label: "Certificat", url: `${BLOB_PUBLIC_URL}/UTY3_Certificat.pdf` }],
       },
       {
         id: "inox",
