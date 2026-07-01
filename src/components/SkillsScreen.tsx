@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react'
 import { AnimatePresence, motion, useReducedMotion } from 'framer-motion'
 import { profile, skillCategories } from '../data/content'
+import { Lock } from 'lucide-react'
 
 interface SkillsScreenProps {
   open: boolean
@@ -16,15 +17,15 @@ interface SkillsScreenProps {
 export function SkillsScreen({ open, accent, onClose }: SkillsScreenProps) {
   const reduceMotion = useReducedMotion()
   const panelRef = useRef<HTMLDivElement>(null)
+  const start = new Date(2021, 0, 1)
+  const today = new Date(Date.now())
+  const yearTotalSeconds = 1000 * 60 * 60 * 24 * 365
+  const currentLevel = Math.floor((today.getTime() - start.getTime()) / yearTotalSeconds)
+  const levelPercent = (new Date(today.getFullYear(), 12, 31).getTime() - today.getTime()) / yearTotalSeconds * 100
 
   useEffect(() => {
     if (open) panelRef.current?.focus()
   }, [open])
-
-  const initials = profile.name
-    .split(' ')
-    .map((w) => w[0])
-    .join('')
 
   return (
     <AnimatePresence>
@@ -74,18 +75,12 @@ export function SkillsScreen({ open, accent, onClose }: SkillsScreenProps) {
 
             {/* Carte de personnage */}
             <motion.div
-              className="mt-8 flex flex-col gap-6 rounded-3xl border border-white/10 bg-white/[0.04] p-7 sm:flex-row sm:items-center sm:gap-8 sm:p-8"
+              className="mt-8 flex flex-col gap-6 rounded-3xl border border-white/10 bg-white/4 p-7 sm:flex-row sm:items-center sm:gap-8 sm:p-8"
               initial={{ opacity: 0, y: 24 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: reduceMotion ? 0 : 0.2, duration: 0.5, ease: 'easeOut' }}
             >
-              <div
-                className="font-display flex h-20 w-20 shrink-0 items-center justify-center rounded-2xl text-3xl italic"
-                style={{ backgroundColor: `${accent}26`, color: accent }}
-                aria-hidden
-              >
-                {initials}
-              </div>
+              <img src={profile.avatar.src} alt={profile.avatar.alt} className="h-26 w-26 rounded-2xl object-cover" style={{ backgroundColor: `${accent}26` }} />
               <div className="min-w-0 flex-1">
                 <h2 className="font-display text-4xl italic">{profile.name}</h2>
                 <p className="mt-1 text-sm text-white/60">
@@ -97,7 +92,7 @@ export function SkillsScreen({ open, accent, onClose }: SkillsScreenProps) {
                     className="rounded-full px-3 py-1 text-xs font-bold tracking-wider"
                     style={{ backgroundColor: accent, color: '#131316' }}
                   >
-                    NIV. {profile.characterLevel}
+                    NIV. {currentLevel}
                   </span>
                   <div
                     className="h-2 flex-1 overflow-hidden rounded-full bg-white/10"
@@ -107,11 +102,16 @@ export function SkillsScreen({ open, accent, onClose }: SkillsScreenProps) {
                       className="h-full rounded-full"
                       style={{ backgroundColor: accent }}
                       initial={{ width: reduceMotion ? '100%' : '0%' }}
-                      animate={{ width: '100%' }}
+                      animate={{ width: `${levelPercent}%` }}
                       transition={{ delay: 0.5, duration: reduceMotion ? 0 : 1, ease: 'easeOut' }}
                     />
                   </div>
-                  <span className="text-xs font-semibold tracking-wider text-white/50">EXP MAX</span>
+                  <span
+                    className="rounded-full px-3 py-1 text-xs font-bold tracking-wider"
+                    style={{ backgroundColor: `${accent}80`, color: '#131316' }}
+                  >
+                    NIV. {currentLevel + 1}
+                  </span>
                 </div>
               </div>
             </motion.div>
@@ -174,11 +174,8 @@ export function SkillsScreen({ open, accent, onClose }: SkillsScreenProps) {
               animate={{ opacity: 1 }}
               transition={{ delay: reduceMotion ? 0 : 0.9 }}
             >
-              <svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden>
-                <rect x="2" y="5" width="8" height="6" rx="1.5" stroke="currentColor" />
-                <path d="M4 5V3.5a2 2 0 1 1 4 0V5" stroke="currentColor" />
-              </svg>
-              Statistiques verrouillées — elles s’améliorent en jouant, pas en cliquant.
+              <Lock size={16} />
+              Statistiques verrouillées - elles s'améliorent en jouant, pas en cliquant.
             </motion.p>
           </div>
         </motion.div>
