@@ -1,6 +1,7 @@
 import { motion } from 'framer-motion'
 import { profile } from '../data/content'
 import { positionedNodes, worldAnchors } from '../map/mapConfig'
+import { MoveRight, MoveLeft, CornerDownLeft } from 'lucide-react'
 
 interface HudProps {
   activeIndex: number
@@ -74,16 +75,16 @@ export function Hud({ activeIndex, introDone, onJump }: HudProps) {
       {/* Aides clavier (desktop) */}
       <aside className="absolute right-8 bottom-8 hidden items-center gap-4 text-xs text-ink-soft md:flex">
         <span className="flex items-center gap-1.5">
-          <kbd className="rounded-md border border-line bg-surface px-1.5 py-0.5 font-sans shadow-sm">←</kbd>
-          <kbd className="rounded-md border border-line bg-surface px-1.5 py-0.5 font-sans shadow-sm">→</kbd>
+          <kbd className="rounded-md border border-line bg-surface px-1.5 py-1 shadow-sm"><MoveLeft size={16} /></kbd>
+          <kbd className="rounded-md border border-line bg-surface px-1.5 py-1 shadow-sm"><MoveRight size={16} /></kbd>
           explorer
         </span>
         <span className="flex items-center gap-1.5">
-          <kbd className="rounded-md border border-line bg-surface px-1.5 py-0.5 font-sans shadow-sm">↵</kbd>
+          <kbd className="rounded-md border border-line bg-surface px-1.5 py-1 shadow-sm"><CornerDownLeft size={16} /></kbd>
           ouvrir
         </span>
         <span className="flex items-center gap-1.5">
-          <kbd className="rounded-md border border-line bg-surface px-1.5 py-0.5 font-sans shadow-sm">esc</kbd>
+          <kbd className="rounded-md border border-line bg-surface px-1.5 py-1 shadow-sm">esc</kbd>
           fermer
         </span>
       </aside>

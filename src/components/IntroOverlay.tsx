@@ -1,6 +1,7 @@
 import { useEffect } from 'react'
 import { motion, useReducedMotion } from 'framer-motion'
 import { profile } from '../data/content'
+import { Circle, CornerDownLeft, MoveLeft, MoveRight } from 'lucide-react'
 
 interface IntroOverlayProps {
   onStart: () => void
@@ -43,7 +44,7 @@ export function IntroOverlay({ onStart }: IntroOverlayProps) {
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: reduceMotion ? 0 : 0.2, duration: 0.7, ease: 'easeOut' }}
       >
-        Portfolio · Carte interactive
+        Portfolio · Nicolas Meuwly
       </motion.p>
 
       <h1 className="font-display mt-6 text-6xl text-ink italic sm:text-8xl" aria-label={profile.role}>
@@ -77,24 +78,21 @@ export function IntroOverlay({ onStart }: IntroOverlayProps) {
       <motion.button
         type="button"
         onClick={onStart}
-        className="mt-12 cursor-pointer rounded-full bg-ink px-8 py-4 text-sm font-semibold text-paper shadow-xl shadow-ink/20 transition-transform hover:scale-[1.04] active:scale-[0.98]"
+        className="flex items-center gap-2 mt-12 cursor-pointer rounded-full bg-ink px-8 py-4 text-sm font-semibold text-paper shadow-xl shadow-ink/20 transition-transform hover:scale-[1.04] active:scale-[0.98]"
         initial={{ opacity: 0, y: 14 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: reduceMotion ? 0 : 1.05, duration: 0.7, ease: 'easeOut' }}
       >
-        Commencer l’exploration
-        <span className="ml-3 rounded-md bg-white/15 px-1.5 py-0.5 text-xs" aria-hidden>
-          ↵
-        </span>
+        Commencer l'exploration<CornerDownLeft size={16} />
       </motion.button>
 
       <motion.p
-        className="absolute bottom-8 text-xs text-ink-soft"
+        className="absolute bottom-8 text-xs text-ink-soft flex items-center gap-4"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ delay: reduceMotion ? 0 : 1.4 }}
       >
-        ← → pour explorer la carte · Entrée pour ouvrir un point
+        <span className="flex items-center gap-2"><MoveLeft size={16} /><MoveRight size={16} />pour explorer la carte</span><Circle size={8} /><span><i>Enter</i> pour ouvrir un point</span>
       </motion.p>
     </motion.div>
   )
