@@ -218,7 +218,7 @@ export const worlds: WorldData[] = [
         subtitle: "Site personnel",
         description: "Description en cours de rédaction...",
         tags: [],
-        links: [{ label: "Voir le site", url: "https://portfolio.nicomeuwly.ch" }, { label: "Code source", url: "https://github.com/nicomeuwly/portfolio" }],
+        links: [{ label: "Voir le site", url: "https://nicomeuwly.github.io/Portfolio/" }, { label: "Code source", url: "https://github.com/nicomeuwly/portfolio" }],
       },
       {
         id: "planning-viewer",
@@ -250,7 +250,7 @@ export const worlds: WorldData[] = [
         subtitle: "Site personnel amélioré",
         description: "Description en cours de rédaction...",
         tags: [],
-        links: [{ label: "Code source", url: "https://github.com/nicomeuwly/portfolio-v2" }],
+        links: [{ label: "Voir le site", url: "https://portfolio.nicomeuwly.ch" }, { label: "Code source", url: "https://github.com/nicomeuwly/portfolio-v2" }],
       },
     ],
   },
