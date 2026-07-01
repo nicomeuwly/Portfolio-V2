@@ -27,7 +27,7 @@ export function DetailPanel({ pn, onClose }: DetailPanelProps) {
         <div className="fixed inset-0 z-40 flex items-end justify-center sm:items-center sm:p-6">
           {/* Fond assombri / flouté */}
           <motion.div
-            className="absolute inset-0 bg-ink/25 backdrop-blur-sm"
+            className="absolute inset-0 bg-ink/10 backdrop-blur-sm"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
@@ -42,7 +42,7 @@ export function DetailPanel({ pn, onClose }: DetailPanelProps) {
             aria-modal="true"
             aria-labelledby={`panel-${pn.node.id}-title`}
             tabIndex={-1}
-            className="relative max-h-[88vh] w-full max-w-xl overflow-y-auto rounded-t-3xl bg-surface p-8 shadow-2xl outline-none sm:rounded-3xl sm:p-10"
+            className="relative max-h-[88vh] w-full max-w-2xl overflow-y-auto rounded-t-3xl bg-surface p-8 shadow-2xl outline-none sm:rounded-3xl sm:p-10"
             initial={reduceMotion ? { opacity: 0 } : { opacity: 0, y: 56, scale: 0.97 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={reduceMotion ? { opacity: 0 } : { opacity: 0, y: 40, scale: 0.97 }}
@@ -100,7 +100,15 @@ export function DetailPanel({ pn, onClose }: DetailPanelProps) {
                   {pn.node.title}
                 </h2>
                 {pn.node.subtitle && (
-                  <p className="mt-1.5 text-sm font-medium text-ink-soft">{pn.node.subtitle}</p>
+                  <div className="flex gap-2 mt-3 items-center">
+                    <p className="text-sm font-medium text-ink-soft">{pn.node.subtitle}</p>
+                    {pn.node.period && (
+                      <span>·</span>
+                    )}
+                    {pn.node.period && (
+                      <p className="text-sm font-medium text-ink-soft">{pn.node.period}</p>
+                    )}
+                  </div>
                 )}
               </div>
 
@@ -111,6 +119,7 @@ export function DetailPanel({ pn, onClose }: DetailPanelProps) {
                   src={pn.node.image.src}
                   alt={pn.node.image.alt}
                   className="mt-6 h-24 w-24 shrink-0 rounded-2xl border border-line object-cover shadow-md sm:h-28 sm:w-28"
+                  style={{ backgroundColor: `${pn.world.accent}15` }}
                 />
               )}
             </div>
@@ -138,11 +147,10 @@ export function DetailPanel({ pn, onClose }: DetailPanelProps) {
                     href={link.url}
                     target={link.url.startsWith('mailto:') ? undefined : '_blank'}
                     rel="noreferrer"
-                    className={`rounded-full px-5 py-2.5 text-sm font-semibold transition-transform hover:-translate-y-0.5 ${
-                      i === 0
-                        ? 'text-white'
-                        : 'border border-line text-ink hover:border-ink/30'
-                    }`}
+                    className={`rounded-full px-5 py-2.5 text-sm font-semibold transition-transform hover:-translate-y-0.5 ${i === 0
+                      ? 'text-white'
+                      : 'border border-line text-ink hover:border-ink/30'
+                      }`}
                     style={i === 0 ? { backgroundColor: pn.world.accent } : undefined}
                   >
                     {link.label}

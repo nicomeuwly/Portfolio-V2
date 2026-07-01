@@ -82,6 +82,9 @@ export function LevelNode({ pn, active, visited, introDone, onClick }: LevelNode
         {node.subtitle && (
           <span className="mt-0.5 block text-xs text-ink-soft">{node.subtitle}</span>
         )}
+        {node.period && (
+          <span className="mt-0.5 block text-xs text-ink-soft">{node.period}</span>
+        )}
       </span>
     </motion.button>
   )
