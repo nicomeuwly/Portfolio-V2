@@ -1,7 +1,7 @@
 import { useEffect, useRef } from 'react'
 import { AnimatePresence, motion, useReducedMotion } from 'framer-motion'
 import { profile, skillCategories } from '../data/content'
-import { Lock } from 'lucide-react'
+import { Lock, X } from 'lucide-react'
 
 interface SkillsScreenProps {
   open: boolean
@@ -67,9 +67,7 @@ export function SkillsScreen({ open, accent, onClose }: SkillsScreenProps) {
                 aria-label="Fermer la fiche de personnage"
                 className="flex h-10 w-10 cursor-pointer items-center justify-center rounded-full border border-white/15 text-white/70 transition-colors hover:bg-white/10 hover:text-white"
               >
-                <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden>
-                  <path d="M1 1l12 12M13 1L1 13" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
-                </svg>
+                <X size={20} />
               </button>
             </div>
 

@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react'
 import { AnimatePresence, motion, useReducedMotion } from 'framer-motion'
 import type { PositionedNode } from '../map/mapConfig'
+import { X } from 'lucide-react'
 
 interface DetailPanelProps {
   /** Le point ouvert, ou null si fermé. */
@@ -58,9 +59,7 @@ export function DetailPanel({ pn, onClose }: DetailPanelProps) {
               aria-label="Fermer le panneau"
               className="absolute top-5 right-5 z-10 flex h-9 w-9 cursor-pointer items-center justify-center rounded-full bg-surface/80 text-ink-soft backdrop-blur-sm transition-colors hover:bg-paper hover:text-ink"
             >
-              <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden>
-                <path d="M1 1l12 12M13 1L1 13" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
-              </svg>
+              <X size={24} />
             </button>
 
             {/* Image bannière (optionnelle, `variant: 'banner'` — défaut) */}
