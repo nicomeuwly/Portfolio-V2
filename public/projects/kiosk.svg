@@ -20,5 +20,5 @@
     <circle cx="670" cy="280" r="16"/>
   </g>
   <text x="72" y="200" font-family="Georgia, 'Times New Roman', serif" font-style="italic" font-size="72" fill="#ffffff">Kiosk</text>
-  <text x="74" y="244" font-family="system-ui, sans-serif" font-size="19" fill="#ffffff" opacity="0.75">Image d’illustration — remplacez-moi</text>
+  <text x="74" y="244" font-family="system-ui, sans-serif" font-size="19" fill="#ffffff" opacity="0.75">Image d'illustration — remplacez-moi</text>
 </svg>
