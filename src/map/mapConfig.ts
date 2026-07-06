@@ -7,6 +7,11 @@
  *  src/data/content.ts. Ajouter un monde ou un point ne demande AUCUNE
  *  modification ici — ajustez seulement les constantes `MAP` si vous voulez
  *  changer le rythme général de la carte.
+ *
+ *  La carte est *orientable* : `buildLayout(vertical, …)` produit soit un
+ *  parcours horizontal (desktop, de gauche à droite), soit vertical (mobile,
+ *  de haut en bas). La logique de navigation (indices, mondes) est identique
+ *  dans les deux cas — seules les coordonnées x/y changent.
  * ============================================================================
  */
 
@@ -14,18 +19,20 @@ import { worlds, type WorldData, type LevelNodeData } from '../data/content'
 
 /** Réglages globaux de la carte (unités : pixels du "plan" de la carte). */
 export const MAP = {
-  /** Distance horizontale entre deux points consécutifs. */
+  /** Distance entre deux points consécutifs (le long de l'axe principal). */
   nodeSpacing: 250,
   /** Espace supplémentaire entre la fin d'un monde et le début du suivant. */
   worldGap: 340,
-  /** Hauteur de référence du chemin. */
+  /** Position de référence du chemin sur l'axe transverse (horizontal). */
   baseY: 540,
-  /** Amplitude de l'ondulation verticale du chemin (effet "niveau"). */
+  /** Amplitude de l'ondulation transverse du chemin — parcours horizontal. */
   waveAmplitude: 85,
+  /** Amplitude de l'ondulation transverse — parcours vertical (écran étroit). */
+  waveAmplitudeV: 52,
   /** Marges avant le premier point / après le dernier. */
   padStart: 460,
   padEnd: 460,
-  /** Hauteur totale du plan de la carte. */
+  /** Hauteur de référence du plan en mode horizontal. */
   height: 1080,
 }
 
@@ -42,61 +49,17 @@ export interface PositionedNode {
   y: number
 }
 
-/* ------------------- Calcul des positions de chaque point ----------------- */
-
-function computePositions(): PositionedNode[] {
-  const out: PositionedNode[] = []
-  let x = MAP.padStart
-  let g = 0
-
-  worlds.forEach((world, worldIndex) => {
-    world.nodes.forEach((node, nodeIndex) => {
-      // Ondulation douce pour casser la ligne droite (le chemin "respire").
-      const wave = Math.sin(g * 1.05) * MAP.waveAmplitude
-      out.push({
-        node,
-        world,
-        worldIndex,
-        nodeIndex,
-        globalIndex: g,
-        x: x + (node.offset?.x ?? 0),
-        y: MAP.baseY + wave + (node.offset?.y ?? 0),
-      })
-      x += MAP.nodeSpacing
-      g += 1
-    })
-    x += MAP.worldGap
-  })
-
-  return out
-}
-
-export const positionedNodes = computePositions()
-
-/** Largeur totale du plan de la carte. */
-export const mapWidth =
-  positionedNodes[positionedNodes.length - 1].x + MAP.padEnd
-
-/* --------------------- Ancres des mondes (titres, HUD) -------------------- */
-
+/** Ancre d'un monde : sert au titre flottant et au HUD. */
 export interface WorldAnchor {
   world: WorldData
   worldIndex: number
-  /** Centre horizontal du monde (pour le titre flottant). */
+  /** Position du titre du monde (dans le repère du plan). */
   x: number
-  /** Position verticale du titre (au-dessus du point le plus haut). */
   y: number
   /** Index global du premier point du monde (cible de navigation). */
   startIndex: number
   nodeCount: number
 }
-
-export const worldAnchors: WorldAnchor[] = worlds.map((world, worldIndex) => {
-  const pts = positionedNodes.filter((p) => p.worldIndex === worldIndex)
-  const x = pts.reduce((s, p) => s + p.x, 0) / pts.length
-  const y = Math.min(...pts.map((p) => p.y)) - 195
-  return { world, worldIndex, x, y, startIndex: pts[0].globalIndex, nodeCount: pts.length }
-})
 
 /* ----------------------- Tracé SVG lissé du chemin ------------------------ */
 
@@ -123,19 +86,118 @@ export function smoothPath(pts: Pt[]): string {
   return d
 }
 
-export const fullPathD = smoothPath(positionedNodes)
+/* --------------------- Construction de la géométrie ---------------------- */
 
-/* ----- Fraction de progression (longueur de corde cumulée) par point ------ */
-
-const cumulative: number[] = [0]
-for (let i = 1; i < positionedNodes.length; i++) {
-  const a = positionedNodes[i - 1]
-  const b = positionedNodes[i]
-  cumulative.push(cumulative[i - 1] + Math.hypot(b.x - a.x, b.y - a.y))
+export interface Layout {
+  nodes: PositionedNode[]
+  anchors: WorldAnchor[]
+  pathD: string
+  /** Dimensions du plan (unités plan, avant mise à l'échelle écran). */
+  planeW: number
+  planeH: number
+  vertical: boolean
+  /** Fraction [0..1] du chemin parcourue au point d'index global `i`. */
+  progressAt: (i: number) => number
 }
-const totalLength = cumulative[cumulative.length - 1]
+
+/**
+ * Construit la géométrie pour une orientation donnée.
+ * `crossExtent` est la taille de l'axe transverse en unités de plan
+ * (largeur du plan en vertical ; ignoré en horizontal où l'on utilise
+ * `MAP.height`).
+ */
+export function buildLayout(vertical: boolean, crossExtent: number): Layout {
+  const amp = vertical ? MAP.waveAmplitudeV : MAP.waveAmplitude
+  const crossSize = vertical ? crossExtent : MAP.height
+  const crossCenter = vertical ? crossSize / 2 : MAP.baseY
+
+  const nodes: PositionedNode[] = []
+  let main = MAP.padStart
+  let g = 0
+
+  worlds.forEach((world, worldIndex) => {
+    world.nodes.forEach((node, nodeIndex) => {
+      // Ondulation douce pour casser la ligne droite (le chemin "respire").
+      // En vertical, la phase est réinitialisée à chaque monde pour que le
+      // 1er point de chaque monde soit centré horizontalement (sin(0) = 0).
+      const wave = Math.sin((vertical ? nodeIndex : g) * 1.05) * amp
+      const cross = crossCenter + wave
+      const mainOffset = vertical ? node.offset?.y ?? 0 : node.offset?.x ?? 0
+      const crossOffset = vertical ? node.offset?.x ?? 0 : node.offset?.y ?? 0
+      const mainPos = main + mainOffset
+      const crossPos = cross + crossOffset
+      nodes.push({
+        node,
+        world,
+        worldIndex,
+        nodeIndex,
+        globalIndex: g,
+        x: vertical ? crossPos : mainPos,
+        y: vertical ? mainPos : crossPos,
+      })
+      main += MAP.nodeSpacing
+      g += 1
+    })
+    main += MAP.worldGap
+  })
+
+  const last = nodes[nodes.length - 1]
+  const mainEnd = (vertical ? last.y : last.x) + MAP.padEnd
+
+  const anchors: WorldAnchor[] = worlds.map((world, worldIndex) => {
+    const pts = nodes.filter((p) => p.worldIndex === worldIndex)
+    const mainOf = (p: PositionedNode) => (vertical ? p.y : p.x)
+    // Horizontal : titre centré sur la largeur du monde, remonté au-dessus.
+    // Vertical : titre centré sur l'écran, posé avant le 1er point avec assez
+    // de marge pour qu'un tagline sur 2 lignes ne colle pas au point.
+    const anchorMain = vertical
+      ? Math.min(...pts.map(mainOf)) - 220
+      : pts.reduce((s, p) => s + mainOf(p), 0) / pts.length
+    const anchorCross = vertical ? crossCenter : Math.min(...pts.map((p) => p.y)) - 195
+    return {
+      world,
+      worldIndex,
+      x: vertical ? anchorCross : anchorMain,
+      y: vertical ? anchorMain : anchorCross,
+      startIndex: pts[0].globalIndex,
+      nodeCount: pts.length,
+    }
+  })
+
+  const cumulative: number[] = [0]
+  for (let i = 1; i < nodes.length; i++) {
+    const a = nodes[i - 1]
+    const b = nodes[i]
+    cumulative.push(cumulative[i - 1] + Math.hypot(b.x - a.x, b.y - a.y))
+  }
+  const total = cumulative[cumulative.length - 1]
+  const progressAt = (i: number) =>
+    total === 0 ? 0 : cumulative[Math.max(0, Math.min(i, cumulative.length - 1))] / total
+
+  return {
+    nodes,
+    anchors,
+    pathD: smoothPath(nodes),
+    planeW: vertical ? crossSize : mainEnd,
+    planeH: vertical ? mainEnd : crossSize,
+    vertical,
+    progressAt,
+  }
+}
+
+/* -------------- Géométrie horizontale par défaut (référence) -------------- */
+/* Exposée pour la logique de navigation (indices, mondes), indépendante de
+   l'orientation. La carte reconstruit la géométrie verticale à la volée. */
+
+const base = buildLayout(false, 0)
+
+export const positionedNodes = base.nodes
+export const worldAnchors = base.anchors
+/** Largeur totale du plan de la carte (mode horizontal). */
+export const mapWidth = base.planeW
+export const fullPathD = base.pathD
 
 /** Fraction [0..1] du chemin parcourue au point d'index global `i`. */
 export function progressAt(i: number): number {
-  return totalLength === 0 ? 0 : cumulative[Math.max(0, Math.min(i, cumulative.length - 1))] / totalLength
+  return base.progressAt(i)
 }

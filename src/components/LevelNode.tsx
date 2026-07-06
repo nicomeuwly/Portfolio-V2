@@ -6,6 +6,9 @@ interface LevelNodeProps {
   active: boolean
   visited: boolean
   introDone: boolean
+  /** Parcours vertical (mobile) : le libellé reçoit une plaque de fond pour
+   *  que le fil d'Ariane, qui descend derrière lui, ne le rende pas illisible. */
+  vertical: boolean
   onClick: () => void
 }
 
@@ -13,7 +16,7 @@ interface LevelNodeProps {
  * Un point (niveau) cliquable sur la carte.
  * Cercle pour les points classiques, losange pour l'écran Compétences.
  */
-export function LevelNode({ pn, active, visited, introDone, onClick }: LevelNodeProps) {
+export function LevelNode({ pn, active, visited, introDone, vertical, onClick }: LevelNodeProps) {
   const reduceMotion = useReducedMotion()
   const { node, world, nodeIndex, globalIndex } = pn
   const isSkills = node.kind === 'skills'
@@ -76,8 +79,15 @@ export function LevelNode({ pn, active, visited, introDone, onClick }: LevelNode
         </span>
       </motion.span>
 
-      {/* Libellé sous le point */}
-      <span className="mt-4 max-w-40 text-center">
+      {/* Libellé sous le point. En vertical, une plaque translucide masque le
+          fil d'Ariane qui passe derrière pour garder le texte lisible. */}
+      <span
+        className={`mt-4 text-center ${
+          vertical
+            ? 'max-w-full rounded-2xl bg-paper/85 px-4 py-3 shadow-sm ring-1 ring-line/50 backdrop-blur-sm'
+            : 'max-w-40'
+        }`}
+      >
         <span className="block text-sm leading-snug font-semibold text-ink">{node.title}</span>
         {node.subtitle && (
           <span className="mt-0.5 block text-xs text-ink-soft">{node.subtitle}</span>

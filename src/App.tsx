@@ -7,6 +7,7 @@ import { Hud } from './components/Hud'
 import { IntroOverlay } from './components/IntroOverlay'
 import { ThemeToggle } from './components/ThemeToggle'
 import { useKeyboardNav } from './hooks/useKeyboardNav'
+import { useScrollNav } from './hooks/useScrollNav'
 import { useTheme } from './hooks/useTheme'
 import { positionedNodes, worldAnchors } from './map/mapConfig'
 
@@ -58,6 +59,14 @@ export default function App() {
     onNextWorld: () => jumpWorld(1),
     onOpen: () => setOpenIndex(activeIndex),
     onClose: close,
+  })
+
+  // Molette / trackpad : avance le parcours d'un point (comme les flèches).
+  // Désactivé quand un panneau est ouvert pour laisser défiler son contenu.
+  useScrollNav({
+    enabled: introDone && openIndex === null,
+    onPrev: () => select(activeIndex - 1),
+    onNext: () => select(activeIndex + 1),
   })
 
   /* -------------------------------- Rendu -------------------------------- */

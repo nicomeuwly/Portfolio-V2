@@ -7,14 +7,7 @@ import {
   useReducedMotion,
   useTransform,
 } from 'framer-motion'
-import {
-  MAP,
-  fullPathD,
-  mapWidth,
-  positionedNodes,
-  progressAt,
-  worldAnchors,
-} from '../map/mapConfig'
+import { buildLayout, mapWidth } from '../map/mapConfig'
 import { LevelNode } from './LevelNode'
 
 interface WorldMapProps {
@@ -27,10 +20,16 @@ interface WorldMapProps {
 const clamp = (v: number, min: number, max: number) =>
   Math.min(max, Math.max(min, v))
 
+/** En-dessous de cette largeur, le parcours passe à la verticale (mobile). */
+const VERTICAL_BREAKPOINT = 768
+
 /**
  * La carte du monde. Un seul grand plan 2D ; la "caméra" est une simple
  * translation animée (transform → GPU) qui centre le point actif.
  * Trois couches de parallaxe : fond (halos), décor (collines), carte.
+ *
+ * L'orientation dépend de la largeur d'écran : parcours horizontal sur
+ * desktop, vertical sur mobile. La géométrie est reconstruite en conséquence.
  */
 export function WorldMap({ activeIndex, introDone, onNodeClick }: WorldMapProps) {
   const reduceMotion = useReducedMotion()
@@ -46,19 +45,28 @@ export function WorldMap({ activeIndex, introDone, onNodeClick }: WorldMapProps)
     return () => window.removeEventListener('resize', onResize)
   }, [])
 
+  const vertical = viewport.w < VERTICAL_BREAKPOINT
+
   // Échelle responsive : légèrement réduite sur petit écran, mais en restant
-  // assez grande pour que les points et libellés soient confortablement
-  // lisibles — la carte se parcourt horizontalement de toute façon.
+  // assez grande pour que les points et libellés soient confortablement lisibles.
   const scale = viewport.w < 640 ? 0.85 : viewport.w < 1024 ? 0.9 : 1
-  const planeW = mapWidth * scale
-  const planeH = MAP.height * scale
+
+  // Géométrie orientée. En vertical, l'axe transverse (largeur) épouse l'écran
+  // pour que le chemin serpente au centre sans déborder.
+  const geo = useMemo(
+    () => buildLayout(vertical, viewport.w / scale),
+    [vertical, viewport.w, scale],
+  )
+
+  const planeW = geo.planeW * scale
+  const planeH = geo.planeH * scale
 
   /* ------------------------------ Caméra --------------------------------- */
   const camX = useMotionValue(0)
   const camY = useMotionValue(0)
 
   const cameraTarget = (index: number) => {
-    const n = positionedNodes[index]
+    const n = geo.nodes[index]
     const x =
       planeW <= viewport.w
         ? (viewport.w - planeW) / 2
@@ -73,10 +81,10 @@ export function WorldMap({ activeIndex, introDone, onNodeClick }: WorldMapProps)
   useEffect(() => {
     const { x, y } = cameraTarget(activeIndex)
     if (!introDone) {
-      // Pendant l'intro : caméra posée légèrement en retrait du départ,
-      // pour un travelling d'entrée au moment du "Commencer".
-      camX.set(x - 220)
-      camY.set(y)
+      // Pendant l'intro : caméra posée légèrement en retrait du départ (le long
+      // de l'axe principal), pour un travelling d'entrée au "Commencer".
+      camX.set(vertical ? x : x - 220)
+      camY.set(vertical ? y - 220 : y)
       return
     }
     if (reduceMotion) {
@@ -92,13 +100,16 @@ export function WorldMap({ activeIndex, introDone, onNodeClick }: WorldMapProps)
       ay.stop()
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeIndex, introDone, scale, viewport.w, viewport.h, reduceMotion])
+  }, [activeIndex, introDone, scale, viewport.w, viewport.h, reduceMotion, vertical])
 
-  // Parallaxe : les couches de fond suivent la caméra plus lentement.
-  const bgX = useTransform(camX, (v) => v * 0.3)
-  const midX = useTransform(camX, (v) => v * 0.65)
+  // Parallaxe : les couches de fond suivent la caméra plus lentement, le long
+  // de l'axe principal (X en horizontal, Y en vertical).
+  const mainCam = vertical ? camY : camX
+  const bgShift = useTransform(mainCam, (v) => v * 0.3)
+  const midShift = useTransform(mainCam, (v) => v * 0.65)
 
   const dragEnabled = planeW > viewport.w || planeH > viewport.h
+  const dragAxis: 'x' | 'y' = vertical ? 'y' : 'x'
   const dragConstraints = {
     left: Math.min(viewport.w - planeW, (viewport.w - planeW) / 2),
     right: Math.max(0, (viewport.w - planeW) / 2),
@@ -107,14 +118,10 @@ export function WorldMap({ activeIndex, introDone, onNodeClick }: WorldMapProps)
   }
 
   /* --------------------------- Décor (mémoïsé) --------------------------- */
-  // Bande de "collines" ancrée au BAS DE L'ÉCRAN (pas au plan de la carte),
-  // pour que le relief touche toujours le bord inférieur quel que soit
-  // l'écran. Seule la translation horizontale suit la parallaxe.
+  // Bande de "collines" ancrée au BAS DE L'ÉCRAN (parcours horizontal
+  // uniquement — en vertical elle n'a pas de sens et n'est pas rendue).
   const GROUND_H = 260
   const groundPaths = useMemo(() => {
-    // Chaque couche couvre TOUTE la largeur de la carte (0 → mapWidth) ;
-    // la profondeur vient d'un déphasage de l'onde, pas d'une translation
-    // (une translation laisserait une arête verticale visible au bord).
     const makeHills = (base: number, amp: number, phase: number) => {
       const pts: { x: number; y: number }[] = []
       for (let x = 0; x <= mapWidth; x += 260) {
@@ -134,24 +141,32 @@ export function WorldMap({ activeIndex, introDone, onNodeClick }: WorldMapProps)
     return [makeHills(84, 30, 0), makeHills(112, 26, 480)]
   }, [])
 
-  const active = positionedNodes[activeIndex]
-  const pathProgress = progressAt(activeIndex)
+  const active = geo.nodes[activeIndex]
+  const pathProgress = geo.progressAt(activeIndex)
 
   return (
     <div className="fixed inset-0 overflow-hidden" aria-label="Carte du portfolio">
       {/* ------------------ Couche 1 : halos colorés (fond) ----------------- */}
-      <motion.div className="absolute top-0 left-0 h-full" style={{ x: bgX, width: planeW }} aria-hidden>
+      <motion.div
+        className="absolute top-0 left-0"
+        style={
+          vertical
+            ? { y: bgShift, width: planeW, height: planeH }
+            : { x: bgShift, width: planeW, height: '100%' }
+        }
+        aria-hidden
+      >
         <div
-          style={{ transform: `scale(${scale})`, transformOrigin: '0 0', width: mapWidth, height: MAP.height }}
+          style={{ transform: `scale(${scale})`, transformOrigin: '0 0', width: geo.planeW, height: geo.planeH }}
           className="relative"
         >
-          {worldAnchors.map((a) => (
+          {geo.anchors.map((a) => (
             <div
               key={a.world.id}
               className="absolute rounded-full blur-3xl"
               style={{
-                left: a.x - 340,
-                top: 140,
+                left: (vertical ? geo.planeW / 2 : a.x) - 340,
+                top: vertical ? a.y - 60 : 140,
                 width: 680,
                 height: 680,
                 background: `radial-gradient(circle, ${a.world.accent}14 0%, transparent 70%)`,
@@ -161,39 +176,41 @@ export function WorldMap({ activeIndex, introDone, onNodeClick }: WorldMapProps)
         </div>
       </motion.div>
 
-      {/* ------- Couche 2 : collines, ancrées au bas de l'écran ------------- */}
-      <motion.div className="absolute bottom-0 left-0" style={{ x: midX, width: planeW }} aria-hidden>
-        {/* preserveAspectRatio="none" : l'axe X suit l'échelle de la carte,
-            l'axe Y reste en pixels écran (hauteur fixe GROUND_H) */}
-        <svg
-          width={planeW}
-          height={GROUND_H}
-          viewBox={`0 0 ${mapWidth} ${GROUND_H}`}
-          preserveAspectRatio="none"
-          className="block"
-        >
-          <path d={groundPaths[0]} fill="var(--color-ink)" opacity={0.04} />
-          <path d={groundPaths[1]} fill="var(--color-ink)" opacity={0.025} />
-        </svg>
-      </motion.div>
+      {/* ------- Couche 2 : collines, bas de l'écran (horizontal seul) ------ */}
+      {!vertical && (
+        <motion.div className="absolute bottom-0 left-0" style={{ x: midShift, width: planeW }} aria-hidden>
+          {/* preserveAspectRatio="none" : l'axe X suit l'échelle de la carte,
+              l'axe Y reste en pixels écran (hauteur fixe GROUND_H) */}
+          <svg
+            width={planeW}
+            height={GROUND_H}
+            viewBox={`0 0 ${mapWidth} ${GROUND_H}`}
+            preserveAspectRatio="none"
+            className="block"
+          >
+            <path d={groundPaths[0]} fill="var(--color-ink)" opacity={0.04} />
+            <path d={groundPaths[1]} fill="var(--color-ink)" opacity={0.025} />
+          </svg>
+        </motion.div>
+      )}
 
       {/* --------------------- Couche 3 : la carte elle-même ---------------- */}
       <motion.div
         className="absolute top-0 left-0 will-change-transform"
         style={{ x: camX, y: camY, width: planeW, height: planeH }}
-        drag={dragEnabled && !reduceMotion}
+        drag={dragEnabled && !reduceMotion ? dragAxis : false}
         dragConstraints={dragConstraints}
         dragElastic={0.06}
         dragMomentum={false}
       >
         <div
-          style={{ transform: `scale(${scale})`, transformOrigin: '0 0', width: mapWidth, height: MAP.height }}
+          style={{ transform: `scale(${scale})`, transformOrigin: '0 0', width: geo.planeW, height: geo.planeH }}
           className="relative"
         >
           {/* Chemin : tracé pointillé complet + portion parcourue */}
-          <svg width={mapWidth} height={MAP.height} className="absolute inset-0" aria-hidden>
+          <svg width={geo.planeW} height={geo.planeH} className="absolute inset-0" aria-hidden>
             <motion.path
-              d={fullPathD}
+              d={geo.pathD}
               fill="none"
               stroke="var(--color-ink)"
               strokeOpacity={0.16}
@@ -205,7 +222,7 @@ export function WorldMap({ activeIndex, introDone, onNodeClick }: WorldMapProps)
               transition={{ duration: 1.2, delay: 0.3 }}
             />
             <motion.path
-              d={fullPathD}
+              d={geo.pathD}
               fill="none"
               stroke="var(--color-ink)"
               strokeWidth={3.5}
@@ -242,10 +259,14 @@ export function WorldMap({ activeIndex, introDone, onNodeClick }: WorldMapProps)
           </AnimatePresence>
 
           {/* Titres des mondes */}
-          {worldAnchors.map((a, i) => (
+          {geo.anchors.map((a, i) => (
             <motion.div
               key={a.world.id}
-              className="absolute -translate-x-1/2 text-center"
+              className={`absolute -translate-x-1/2 text-center ${
+                vertical
+                  ? 'rounded-3xl bg-paper/85 px-5 py-4 shadow-sm ring-1 ring-line/50 backdrop-blur-sm'
+                  : ''
+              }`}
               style={{ left: a.x, top: a.y }}
               initial={{ opacity: 0, y: 18 }}
               animate={introDone ? { opacity: 1, y: 0 } : {}}
@@ -263,13 +284,14 @@ export function WorldMap({ activeIndex, introDone, onNodeClick }: WorldMapProps)
           ))}
 
           {/* Les points / niveaux */}
-          {positionedNodes.map((pn) => (
+          {geo.nodes.map((pn) => (
             <LevelNode
               key={pn.node.id}
               pn={pn}
               active={pn.globalIndex === activeIndex}
               visited={pn.globalIndex <= activeIndex}
               introDone={introDone}
+              vertical={vertical}
               onClick={() => onNodeClick(pn.globalIndex)}
             />
           ))}
