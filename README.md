@@ -13,6 +13,7 @@ artistique épurée et premium.
 | **React 19 + Vite + TypeScript** | Base de l'app | Rapide, typé, standard |
 | **Tailwind CSS v4** | Styles | Tokens centralisés dans `src/index.css`, zéro CSS mort |
 | **Framer Motion** | Animations | Springs physiques pour la caméra, `AnimatePresence` pour les panneaux, `pathLength` pour le tracé SVG, `useReducedMotion` intégré |
+| **lucide-react** | Icônes | Jeu d'icônes cohérent (flèches, thème, fermeture…) |
 
 Le chemin est un simple SVG animé (pas de canvas) : léger, net à toutes les
 échelles, et GPU-friendly (uniquement des `transform` / `opacity`).
@@ -33,10 +34,14 @@ Vous n'avez jamais besoin de toucher aux composants.
 
 | Quoi | Où dans `content.ts` |
 |---|---|
-| Nom, rôle, accroche, niveau | objet `profile` |
+| Nom, rôle, accroche, avatar, localisation | objet `profile` |
 | Mondes (titres, couleurs, taglines) | tableau `worlds` |
 | Points d'un monde (étapes, projets…) | `worlds[i].nodes` |
 | Compétences et niveaux (écran RPG) | tableau `skillCategories` |
+
+> Le niveau du personnage (écran Compétences) n'est **pas** dans `content.ts` :
+> il est calculé automatiquement à partir d'une date de départ dans
+> `SkillsScreen.tsx`.
 
 ### Ajouter un point à un monde
 
@@ -46,7 +51,8 @@ Ajoutez un objet dans le tableau `nodes` du monde concerné :
 {
   id: 'mon-projet',                  // unique
   title: 'Mon projet',
-  subtitle: 'SaaS · 2026',           // optionnel
+  subtitle: 'Studio Pixel',          // optionnel — rôle / contexte
+  period: '2021 - 2024',             // optionnel — dates (points de parcours)
   description: 'Texte du panneau de détail.',
   tags: ['React', 'TypeScript'],     // optionnel
   links: [{ label: 'Démo', url: 'https://…' }], // optionnel
@@ -82,9 +88,11 @@ panneau classique. Les jauges s'animent à l'entrée mais les valeurs sont
 
 ## 🗺️ Régler la carte
 
-La géométrie (espacement des points, ondulation du chemin, marges) se règle
-dans les constantes `MAP` de [`src/map/mapConfig.ts`](src/map/mapConfig.ts).
-Un point peut être décalé individuellement via sa propriété `offset`.
+La géométrie (espacement des points, ondulation du chemin — horizontale et
+verticale —, marges) se règle dans les constantes `MAP` de
+[`src/map/mapConfig.ts`](src/map/mapConfig.ts). La fonction `buildLayout`
+produit la carte selon l'orientation. Un point peut être décalé
+individuellement via sa propriété `offset`.
 
 ## Structure
 
@@ -93,18 +101,22 @@ src/
 ├── data/
 │   └── content.ts        ← ✏️ TOUT LE CONTENU (à éditer)
 ├── map/
-│   └── mapConfig.ts      ← géométrie de la carte (calculée automatiquement)
+│   └── mapConfig.ts      ← géométrie orientable (horizontale / verticale)
 ├── components/
-│   ├── WorldMap.tsx      ← caméra, parallaxe, chemin SVG, décor
+│   ├── WorldMap.tsx      ← caméra, parallaxe, chemin SVG, décor, orientation
 │   ├── LevelNode.tsx     ← un point cliquable sur la carte
 │   ├── DetailPanel.tsx   ← panneau de détail (modale / bottom sheet)
 │   ├── SkillsScreen.tsx  ← fiche de personnage RPG (compétences)
 │   ├── Hud.tsx           ← identité, progression par monde, aides clavier
-│   └── IntroOverlay.tsx  ← écran d'arrivée animé
+│   ├── IntroOverlay.tsx  ← écran d'arrivée animé
+│   └── ThemeToggle.tsx   ← bouton bascule clair / sombre
 ├── hooks/
-│   └── useKeyboardNav.ts ← navigation clavier globale
+│   ├── useKeyboardNav.ts ← navigation clavier globale
+│   ├── useScrollNav.ts   ← navigation à la molette / trackpad
+│   └── useTheme.ts       ← thème clair / sombre (persisté)
 ├── App.tsx               ← orchestration (état actif / ouvert / intro)
-└── index.css             ← design tokens (couleurs, polices)
+├── index.css             ← design tokens (couleurs, polices)
+└── vite-env.d.ts         ← types Vite (variables d'env `VITE_*`)
 ```
 
 ## Thème clair / sombre
@@ -118,10 +130,23 @@ Les deux palettes sont définies dans [`src/index.css`](src/index.css)
 
 - **← / →** : point précédent / suivant (la caméra suit)
 - **↑ / ↓** : monde précédent / suivant
+- **Molette / trackpad** : avancer / reculer d'un point (comme ← / →)
 - **Entrée / espace** : ouvrir le point actif · **Échap** : fermer
 - **Clic / tap** sur un point : s'y rendre et l'ouvrir
-- **Glisser** la carte pour l'explorer librement
+- **Glisser** la carte : exploration libre, verrouillée sur un axe (horizontal
+  sur desktop, vertical sur mobile)
 - Barre du bas : cliquer un segment saute au monde correspondant
+
+### Orientation responsive
+
+Le parcours se déroule **horizontalement** sur desktop et **verticalement** sur
+mobile (sous 768px, le seuil `VERTICAL_BREAKPOINT` de `WorldMap.tsx`). La
+géométrie est reconstruite automatiquement et le premier point de chaque monde
+est centré horizontalement en mode vertical.
+
+> La molette repose sur l'événement `wheel` : elle fonctionne au trackpad et à
+> la souris (desktop / émulation mobile). Sur un vrai écran tactile, le doigt
+> fait du glissement, pas du scroll pas-à-pas.
 
 ## Accessibilité
 
