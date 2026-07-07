@@ -23,6 +23,11 @@ const clamp = (v: number, min: number, max: number) =>
 /** En-dessous de cette largeur, le parcours passe à la verticale (mobile). */
 const VERTICAL_BREAKPOINT = 768
 
+/** Halo coloré de fond derrière chaque monde. */
+const HALO_SIZE = 680
+/** Décalage vertical du halo sous le titre du monde (unités plan). */
+const HALO_DROP = 160
+
 /**
  * La carte du monde. Un seul grand plan 2D ; la "caméra" est une simple
  * translation animée (transform → GPU) qui centre le point actif.
@@ -105,7 +110,6 @@ export function WorldMap({ activeIndex, introDone, onNodeClick }: WorldMapProps)
   // Parallaxe : les couches de fond suivent la caméra plus lentement, le long
   // de l'axe principal (X en horizontal, Y en vertical).
   const mainCam = vertical ? camY : camX
-  const bgShift = useTransform(mainCam, (v) => v * 0.3)
   const midShift = useTransform(mainCam, (v) => v * 0.65)
 
   const dragEnabled = planeW > viewport.w || planeH > viewport.h
@@ -147,13 +151,11 @@ export function WorldMap({ activeIndex, introDone, onNodeClick }: WorldMapProps)
   return (
     <div className="fixed inset-0 overflow-hidden" aria-label="Carte du portfolio">
       {/* ------------------ Couche 1 : halos colorés (fond) ----------------- */}
+      {/* Verrouillés sur la caméra de la carte (comme les titres) pour rester
+          fixes sous leur monde : centrés sur le titre, un peu plus bas. */}
       <motion.div
         className="absolute top-0 left-0"
-        style={
-          vertical
-            ? { y: bgShift, width: planeW, height: planeH }
-            : { x: bgShift, width: planeW, height: '100%' }
-        }
+        style={{ x: camX, y: camY, width: planeW, height: planeH }}
         aria-hidden
       >
         <div
@@ -165,10 +167,10 @@ export function WorldMap({ activeIndex, introDone, onNodeClick }: WorldMapProps)
               key={a.world.id}
               className="absolute rounded-full blur-3xl"
               style={{
-                left: (vertical ? geo.planeW / 2 : a.x) - 340,
-                top: vertical ? a.y - 60 : 140,
-                width: 680,
-                height: 680,
+                left: a.x - HALO_SIZE / 2,
+                top: a.y + HALO_DROP - HALO_SIZE / 2,
+                width: HALO_SIZE,
+                height: HALO_SIZE,
                 background: `radial-gradient(circle, ${a.world.accent}14 0%, transparent 70%)`,
               }}
             />
