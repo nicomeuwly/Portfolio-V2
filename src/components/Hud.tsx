@@ -1,7 +1,7 @@
 import { motion } from 'framer-motion'
 import { profile } from '../data/content'
 import { positionedNodes, worldAnchors } from '../map/mapConfig'
-import { MoveRight, MoveLeft, CornerDownLeft } from 'lucide-react'
+import { MoveRight, MoveLeft, CornerDownLeft, Mouse } from 'lucide-react'
 
 interface HudProps {
   activeIndex: number
@@ -19,7 +19,7 @@ export function Hud({ activeIndex, introDone, onJump }: HudProps) {
 
   return (
     <motion.div
-      className="pointer-events-none fixed inset-0 z-30"
+      className="pointer-events-none fixed inset-0 z-30 max-md:bg-mobile-gradient"
       initial={{ opacity: 0 }}
       animate={{ opacity: introDone ? 1 : 0 }}
       transition={{ delay: 0.6, duration: 0.8 }}
@@ -73,10 +73,12 @@ export function Hud({ activeIndex, introDone, onJump }: HudProps) {
       </nav>
 
       {/* Aides clavier (desktop) */}
-      <aside className="absolute right-8 bottom-8 hidden items-center gap-4 text-xs text-ink-soft md:flex">
+      <aside className="absolute right-8 bottom-8 hidden items-center gap-4 text-xs text-ink-soft lg:flex max-lg:hidden">
         <span className="flex items-center gap-1.5">
           <kbd className="rounded-md border border-line bg-surface px-1.5 py-1 shadow-sm"><MoveLeft size={16} /></kbd>
           <kbd className="rounded-md border border-line bg-surface px-1.5 py-1 shadow-sm"><MoveRight size={16} /></kbd>
+          ou
+          <kbd className="rounded-md border border-line bg-surface px-1.5 py-1 shadow-sm"><Mouse size={16} /></kbd>
           explorer
         </span>
         <span className="flex items-center gap-1.5">

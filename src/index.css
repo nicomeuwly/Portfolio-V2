@@ -16,6 +16,19 @@
   --font-display: "Instrument Serif", Georgia, serif;
 }
 
+/* Fondu haut/bas vers le fond — estompe les bords du défilement vertical.
+   Défini comme utilitaire (image, pas couleur) ; `var(--color-paper)` est
+   résolu au runtime, donc le dégradé suit le thème clair/sombre. */
+@utility bg-mobile-gradient {
+  background-image: linear-gradient(
+    to bottom,
+    var(--color-paper) 5%,
+    transparent 30%,
+    transparent 70%,
+    var(--color-paper) 90%
+  );
+}
+
 /* Anneau de focus clavier, par thème (volontairement hors de @theme pour
    rester une vraie variable au runtime, non aplatie à la compilation) */
 :root {

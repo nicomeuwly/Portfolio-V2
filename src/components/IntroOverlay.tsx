@@ -1,7 +1,7 @@
 import { useEffect } from 'react'
 import { motion, useReducedMotion } from 'framer-motion'
 import { profile } from '../data/content'
-import { Circle, CornerDownLeft, MoveLeft, MoveRight } from 'lucide-react'
+import { Circle, CornerDownLeft, Mouse, MoveLeft, MoveRight, Pointer } from 'lucide-react'
 
 interface IntroOverlayProps {
   onStart: () => void
@@ -92,7 +92,7 @@ export function IntroOverlay({ onStart }: IntroOverlayProps) {
         animate={{ opacity: 1 }}
         transition={{ delay: reduceMotion ? 0 : 1.4 }}
       >
-        <span className="flex items-center gap-2"><MoveLeft size={16} /><MoveRight size={16} />pour explorer la carte</span><Circle size={8} /><span><i>Enter</i> pour ouvrir un point</span>
+        <span className="flex items-center gap-2"><span className="flex items-center gap-2 max-sm:hidden"><MoveLeft size={16} /><MoveRight size={16} />ou<Mouse size={16} /></span><Pointer size={16} className="sm:hidden"/>pour explorer la carte</span><Circle size={8} className="max-sm:hidden"/><span className="max-sm:hidden"><i>Enter</i> pour ouvrir un point</span>
       </motion.p>
     </motion.div>
   )
