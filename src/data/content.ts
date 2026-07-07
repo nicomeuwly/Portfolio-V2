@@ -218,7 +218,7 @@ export const worlds: WorldData[] = [
         subtitle: "Site personnel",
         description: "Description en cours de rédaction...",
         tags: [],
-        links: [{ label: "Voir le site", url: "https://nicomeuwly.github.io/Portfolio/" }, { label: "Code source", url: "https://github.com/nicomeuwly/portfolio" }],
+        links: [{ label: "Voir le site", url: "https://portfolio-five-hazel-u7lpx1vytt.vercel.app/" }, { label: "Code source", url: "https://github.com/nicomeuwly/portfolio" }],
       },
       {
         id: "planning-viewer",
