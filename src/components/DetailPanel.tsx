@@ -1,7 +1,7 @@
 import { useEffect, useRef } from 'react'
 import { AnimatePresence, motion, useReducedMotion } from 'framer-motion'
 import type { PositionedNode } from '../map/mapConfig'
-import { X } from 'lucide-react'
+import { Calendar, MapPin, X } from 'lucide-react'
 
 interface DetailPanelProps {
   /** Le point ouvert, ou null si fermé. */
@@ -74,53 +74,51 @@ export function DetailPanel({ pn, onClose }: DetailPanelProps) {
             <div
               className={
                 pn.node.image?.variant === 'portrait'
-                  ? 'flex items-start justify-between gap-6'
+                  ? 'flex flex-col items-start justify-between gap-3'
                   : undefined
               }
             >
-              <div className="min-w-0">
-                {/* Pastille du monde */}
+              {/* Pastille du monde */}
+              <span
+                className="inline-flex mb-6 items-center gap-2 rounded-full px-3.5 py-1.5 text-[11px] font-semibold tracking-[0.18em] uppercase"
+                style={{ backgroundColor: `${pn.world.accent}15`, color: pn.world.accent }}
+              >
                 <span
-                  className="inline-flex items-center gap-2 rounded-full px-3.5 py-1.5 text-[11px] font-semibold tracking-[0.18em] uppercase"
-                  style={{ backgroundColor: `${pn.world.accent}15`, color: pn.world.accent }}
-                >
-                  <span
-                    className="h-1.5 w-1.5 rounded-full"
-                    style={{ backgroundColor: pn.world.accent }}
-                    aria-hidden
-                  />
-                  {pn.world.label} · {pn.world.title}
-                </span>
+                  className="h-1.5 w-1.5 rounded-full"
+                  style={{ backgroundColor: pn.world.accent }}
+                  aria-hidden
+                />
+                {pn.world.label} · {pn.world.title}
+              </span>
+              <div className="w-full flex justify-between items-center">
+                <div className="min-w-0">
+                  <h2
+                    id={`panel-${pn.node.id}-title`}
+                    className="font-display text-4xl text-ink italic sm:text-[2.6rem]"
+                  >
+                    {pn.node.title}
+                  </h2>
+                  {pn.node.subtitle && (
+                    <div className="flex gap-4 mt-3 items-center flex-wrap">
+                      <p className="flex items-center gap-2 text-sm font-medium text-ink-soft">{pn.node.period && (<MapPin size={16} />)}{pn.node.subtitle}</p>
+                      {pn.node.period && (
+                        <p className="flex items-center gap-2 text-sm font-medium text-ink-soft"><Calendar size={16} />{pn.node.period}</p>
+                      )}
+                    </div>
+                  )}
+                </div>
 
-                <h2
-                  id={`panel-${pn.node.id}-title`}
-                  className="font-display mt-5 text-4xl text-ink italic sm:text-[2.6rem]"
-                >
-                  {pn.node.title}
-                </h2>
-                {pn.node.subtitle && (
-                  <div className="flex gap-2 mt-3 items-center">
-                    <p className="text-sm font-medium text-ink-soft">{pn.node.subtitle}</p>
-                    {pn.node.period && (
-                      <span>·</span>
-                    )}
-                    {pn.node.period && (
-                      <p className="text-sm font-medium text-ink-soft">{pn.node.period}</p>
-                    )}
-                  </div>
+                {/* Photo portrait (optionnelle, `variant: 'portrait'`) —
+                  décalée sous le bouton de fermeture pour ne pas le chevaucher */}
+                {pn.node.image?.variant === 'portrait' && (
+                  <img
+                    src={pn.node.image.src}
+                    alt={pn.node.image.alt}
+                    className="h-24 w-24 shrink-0 rounded-2xl border border-line object-cover shadow-md sm:h-28 sm:w-28"
+                    style={{ backgroundColor: `${pn.world.accent}15` }}
+                  />
                 )}
               </div>
-
-              {/* Photo portrait (optionnelle, `variant: 'portrait'`) —
-                  décalée sous le bouton de fermeture pour ne pas le chevaucher */}
-              {pn.node.image?.variant === 'portrait' && (
-                <img
-                  src={pn.node.image.src}
-                  alt={pn.node.image.alt}
-                  className="mt-6 h-24 w-24 shrink-0 rounded-2xl border border-line object-cover shadow-md sm:h-28 sm:w-28"
-                  style={{ backgroundColor: `${pn.world.accent}15` }}
-                />
-              )}
             </div>
 
             <p className="mt-5 leading-relaxed text-ink/85">{pn.node.description}</p>
